@@ -1,0 +1,56 @@
+{% extends "blog/index.html" %}
+
+{% block content %}
+  <div class="container my-4">
+    <div class="row">
+      <div class="col-md-12"></div>
+      <a href="{% url 'blog:index' %}" class="btn btn-secondary mb-4 align-center">Home</a>
+
+      <div class="card mb-4">
+        <div class="card-body">
+          <h3 class="card-title">Title:</h3>
+          <p class="card-text">{{ post.title }}</p>
+
+          <h3 class="card-title">Content:</h3>
+          <p class="card-text">{{ post.content }}</p>
+
+          <h3 class="card-title">Created Time:</h3>
+          <p class="card-text">{{ post.created_time|date:"F j, Y, g:i a" }}</p>
+
+          <h3 class="card-title">Owner:</h3>
+          <p class="card-text">{{ post.owner }}</p>
+        </div>
+      </div>
+
+      <h3>Comments:</h3>
+      {% if post.commentaries.count > 0 %}
+        <ul class="list-group mb-4">
+          {% for c in post.commentaries.all %}
+            <li class="list-group-item">
+              <strong>{{ c.user.username }}:</strong> {{ c.content }}
+              <span class="text-muted float-right">{{ c.created_time|date:"F j, Y, g:i a" }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">No comments available.</p>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card mt-4">
+    <div class="card-header">
+      <h3 class="h6 mb-0">Add a Comment</h3>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{% url 'blog:comment-create' pk=post.id %}">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="content">Your Comment:</label>
+          <input type="text" class="form-control" id="content" name="content"
+                 placeholder="Write your comment here...">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}
