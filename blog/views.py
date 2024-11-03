@@ -37,11 +37,19 @@ class PostCreateView(generic.CreateView):
 
     def form_valid(self, form):
         post = get_object_or_404(Post, id=self.kwargs['pk'])
-        comment = form.save(commit=False)
-        comment.post = post
-        comment.user = self.request.user
-        comment.save()
-        return super().form_valid(form)
+
+        content = form.cleaned_data.get("content")
+        if content:
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.user = self.request.user
+            comment.save()
+            return super().form_valid(form)
 
     def get_success_url(self):
         return reverse_lazy("blog:post-detail", kwargs={"pk": self.kwargs["pk"]})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['post'] = get_object_or_404(Post, id=self.kwargs['pk'])
+        return context
