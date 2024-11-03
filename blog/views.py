@@ -1,9 +1,10 @@
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.views import generic
 
+from blog.forms import CommentForm
 from blog.models import Post, Commentary
 
 
@@ -30,10 +31,17 @@ class PostDetailView(generic.DetailView):
     model = Post
 
 
-def post_create_view(request, pk):
-    post = get_object_or_404(Post, id=pk)
-    if request.method == "POST":
-        content = request.POST.get("content")
-        if content:
-            Commentary.objects.create(post=post, content=content, user=request.user)
-    return redirect(reverse("blog:post-detail", kwargs={"pk": pk}))
+class PostCreateView(generic.CreateView):
+    form_class = CommentForm
+    template_name = "blog/post_detail.html"
+
+    def form_valid(self, form):
+        post = get_object_or_404(Post, id=self.kwargs['pk'])
+        comment = form.save(commit=False)
+        comment.post = post
+        comment.user = self.request.user
+        comment.save()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("blog:post-detail", kwargs={"pk": self.kwargs["pk"]})
